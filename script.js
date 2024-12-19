@@ -16,28 +16,56 @@ fetch('./assets/college_map.geojson')
         // Add GeoJSON to map
         const geoJsonLayer = L.geoJSON(data, {
             onEachFeature: function (feature, layer) {
-                if (feature.properties && feature.properties.name) {
-                    // Use proper template literal syntax
-                    layer.bindPopup(`<b>${feature.properties.name}</b>`);
+                if (feature.properties && feature.properties.Name) {
+                    // Bind a tooltip to the layer for hover effect
+                    layer.bindTooltip(feature.properties.Name, {
+                        permanent: false, // Tooltip only appears on hover
+                        direction: "top", // Position the tooltip above the point
+                        className: "hover-tooltip", // Optional: Add custom styling
+                    });
+        
+                    // Bind a popup for click interaction (if needed)
+                    layer.bindPopup(`<b>${feature.properties.Name}</b>`);
                 }
-                // Store feature data
+        
+                // Store feature data for searching and routing
                 allFeatures.push({
-                    name: feature.properties.name,
+                    name: feature.properties.Name,
                     layer,
                     coordinates: feature.geometry.coordinates, // [longitude, latitude]
+                });
+        
+                // Add hover styling for better visual feedback
+                layer.on("mouseover", function () {
+                    layer.setStyle({
+                        radius: 8,
+                        fillColor: "#ff7800",
+                        color: "#ff0000",
+                        weight: 2,
+                    });
+                });
+        
+                layer.on("mouseout", function () {
+                    layer.setStyle({
+                        radius: 6,
+                        fillColor: "#3388ff",
+                        color: "#000",
+                        weight: 1,
+                    });
                 });
             },
             pointToLayer: function (feature, latlng) {
                 return L.circleMarker(latlng, {
                     radius: 6,
-                    fillColor: '#3388ff',
-                    color: '#000',
+                    fillColor: "#3388ff",
+                    color: "#000",
                     weight: 1,
                     opacity: 1,
                     fillOpacity: 0.8,
                 });
             },
         }).addTo(map);
+        
 
         // Adjust map bounds based on GeoJSON features
         map.fitBounds(geoJsonLayer.getBounds());
