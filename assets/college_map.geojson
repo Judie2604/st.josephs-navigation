@@ -1,0 +1,28 @@
+{"type":"FeatureCollection", "features":[
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2263893,12.8702494,0]},"properties":{"name":"college entrance"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2177091,12.8696457,0]},"properties":{"name":"Temple"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2177914,12.8693916,0]},"properties":{"name":"Masjid"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2177296,12.8701782,0]},"properties":{"name":"Car Parking"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2177613,12.8695188,0]},"properties":{"name":"chapel"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2163261,12.8714745,0]},"properties":{"name":"St.joseph's Transport Area"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2161712,12.8714467,0]},"properties":{"name":"SJCE Bus Bay"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2168271,12.8709405,0]},"properties":{"name":"Placement and Training centre"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2170214,12.8693018,0]},"properties":{"name":"Administration block"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2170149,12.8687747,0]},"properties":{"name":"Department of Information Technology"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2168109,12.8688946,0]},"properties":{"name":"Department of Electronics and Communication Engineering, SJCE"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2167228,12.8685602,0]},"properties":{"name":"Department of Biotechnology"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2160332,12.8683898,0]},"properties":{"name":"Indoor Auditorium"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2160271,12.8689786,0]},"properties":{"name":"Mechanical department (21-25)"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2147637,12.8689437,0]},"properties":{"name":"Girl's veg mess"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2151684,12.8684525,0]},"properties":{"name":"Indian Bank"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2147825,12.8681576,0]},"properties":{"name":"Boy's Mess Hall"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2151392,12.8677153,0]},"properties":{"name":"Men's hostel, St Joseph's College Of Engineering"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2136774,12.8670479,0]},"properties":{"name":"St. Joseph's Football Ground"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.214964,12.8697209,0]},"properties":{"name":"Library"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2154661,12.8702592,0]},"properties":{"name":"Department of Electrical and electronics engineering,SJCE"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.215787,12.8695304,0]},"properties":{"name":"MGR Statue"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2171804,12.8703275,0]},"properties":{"name":"Centre for Innovation"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.2163733,12.8708298,0]},"properties":{"name":"Exam block"}},
+{"type":"Feature","geometry":{"type":"Point","coordinates":[80.215185,12.8691349,0]},"properties":{"name":"Department of AML"}}
+
+]}
