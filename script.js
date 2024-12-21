@@ -19,12 +19,10 @@ let activeInputField = null;
 document.getElementById('source').addEventListener('focus', () => {
     activeInputField = 'source';
 });
-
 document.getElementById('destination').addEventListener('focus', () => {
     activeInputField = 'destination';
 });
 
-// Remove focus tracking when clicking outside input fields
 document.addEventListener('click', (event) => {
     if (!event.target.closest('#source') && !event.target.closest('#destination')) {
         activeInputField = null;
@@ -33,8 +31,8 @@ document.addEventListener('click', (event) => {
 
 // Load GeoJSON data
 fetch('./assets/college_map.geojson')
-    .then(response => response.json())
-    .then(data => {
+    .then((response) => response.json())
+    .then((data) => {
         const geoJsonLayer = L.geoJSON(data, {
             onEachFeature: (feature, layer) => {
                 if (feature.properties && feature.properties.Name) {
@@ -47,6 +45,15 @@ fetch('./assets/college_map.geojson')
                         details: feature.properties.description || 'No details available',
                         coordinates: feature.geometry.coordinates,
                         layer,
+                        imageUrl: feature.properties.imageUrl || '',
+                    });
+
+                    // Add hover effect
+                    layer.on('mouseover', () => {
+                        layer.setStyle({ radius: 12, weight: 3, color: '#007bff' });
+                    });
+                    layer.on('mouseout', () => {
+                        layer.setStyle({ radius: 8, weight: 1, color: '#3388ff' });
                     });
 
                     // Add click event for sliding panel and input field filling
@@ -60,7 +67,7 @@ fetch('./assets/college_map.geojson')
                         // Automatically fill the active input field
                         if (activeInputField) {
                             document.getElementById(activeInputField).value = feature.properties.Name;
-                            activeInputField = null; // Reset after filling
+                            activeInputField = null;
                         }
                     });
                 }
@@ -70,31 +77,33 @@ fetch('./assets/college_map.geojson')
         // Fit the map to the GeoJSON bounds
         map.fitBounds(geoJsonLayer.getBounds());
     })
-    .catch(error => console.error('Error loading GeoJSON:', error));
+    .catch((error) => console.error('Error loading GeoJSON:', error));
 
 // Function to show the sliding panel
 function showSlidingPanel(name, details, imageUrl) {
     locationTitle.textContent = name;
 
-    // Update the image if available, or hide it if not
+    // Check if imageUrl exists and is valid
     if (imageUrl) {
         locationImage.src = imageUrl;
         locationImage.alt = `${name} Image`;
-        locationImage.style.display = 'block'; // Show the image
+        locationImage.style.display = 'block';
+
+        // Add an error handler to set a default image if the URL fails
+        locationImage.onerror = () => {
+            locationImage.src = './assets/default-image.jpg'; // Path to your default image
+            locationImage.alt = 'Default Image';
+        };
     } else {
-        locationImage.style.display = 'none'; // Hide the image if no image URL is provided
+        // Hide the image if no URL is provided
+        locationImage.style.display = 'none';
     }
 
+    // Update location details
     if (details) {
-        // Format description for line-by-line display
-        if (details.includes('\n')) {
-            locationDetails.innerHTML = details.replace(/\n/g, '<br>');
-        } else if (details.includes(',')) {
-            const detailsList = details.split(',').map(item => item.trim());
-            locationDetails.innerHTML = '<ul>' + detailsList.map(item => `<li>${item}</li>`).join('') + '</ul>';
-        } else {
-            locationDetails.textContent = details;
-        }
+        locationDetails.innerHTML = details.includes('\n')
+            ? details.replace(/\n/g, '<br>')
+            : details;
     } else {
         locationDetails.textContent = 'No details available.';
     }
@@ -110,7 +119,7 @@ function hideSlidingPanel() {
 // Close button functionality
 closePanelButton.addEventListener('click', hideSlidingPanel);
 
-// Search functionality with autocomplete
+// Add search functionality with highlight effect
 function initializeAutocomplete(inputId) {
     const inputField = document.getElementById(inputId);
     const suggestionBox = document.createElement('div');
@@ -122,22 +131,28 @@ function initializeAutocomplete(inputId) {
         suggestionBox.innerHTML = '';
 
         if (query) {
-            const matches = allFeatures.filter(f => f.name.toLowerCase().includes(query));
-            matches.forEach(match => {
+            const matches = allFeatures.filter((f) =>
+                f.name.toLowerCase().includes(query)
+            );
+            matches.forEach((match) => {
                 const suggestion = document.createElement('div');
                 suggestion.textContent = match.name;
 
-                // When a suggestion is clicked
                 suggestion.addEventListener('click', () => {
                     inputField.value = match.name;
                     suggestionBox.innerHTML = '';
                     suggestionBox.style.display = 'none';
 
+                    map.setView([match.coordinates[1], match.coordinates[0]], 18);
+                    match.layer.openTooltip();
+                    match.layer.setStyle({ radius: 15, color: '#ff0000' });
+
+                    setTimeout(() => {
+                        match.layer.setStyle({ radius: 8, color: '#3388ff' });
+                    }, 3000);
+
                     if (inputId === 'search-box') {
-                        map.setView([match.coordinates[1], match.coordinates[0]], 18);
                         showSlidingPanel(match.name, match.details, match.imageUrl);
-                    } else {
-                        document.getElementById(inputId).value = match.name;
                     }
                 });
 
@@ -155,7 +170,6 @@ function initializeAutocomplete(inputId) {
     });
 }
 
-// Initialize autocomplete for search, source, and destination
 initializeAutocomplete('search-box');
 initializeAutocomplete('source');
 initializeAutocomplete('destination');
@@ -166,14 +180,14 @@ document.getElementById('draw-route-button').addEventListener('click', () => {
     const sourceName = document.getElementById('source').value.toLowerCase();
     const destinationName = document.getElementById('destination').value.toLowerCase();
 
-    const source = allFeatures.find(f => f.name.toLowerCase() === sourceName);
-    const destination = allFeatures.find(f => f.name.toLowerCase() === destinationName);
+    const source = allFeatures.find((f) => f.name.toLowerCase() === sourceName);
+    const destination = allFeatures.find(
+        (f) => f.name.toLowerCase() === destinationName
+    );
 
     if (source && destination) {
-        // Remove any existing route
         if (routeControl) map.removeControl(routeControl);
 
-        // Add a new route
         routeControl = L.Routing.control({
             waypoints: [
                 L.latLng(source.coordinates[1], source.coordinates[0]),
@@ -182,30 +196,78 @@ document.getElementById('draw-route-button').addEventListener('click', () => {
             routeWhileDragging: true,
         }).addTo(map);
 
-        // Hide the sliding panel when routing is active
         hideSlidingPanel();
     } else {
         alert('Invalid source or destination.');
     }
 });
 
-// Add event listener to search button next to source and destination input fields
-document.getElementById('search-button-source').addEventListener('click', () => {
+// Add back button to the map overlay
+const backButton = document.createElement('button');
+backButton.textContent = '←';
+backButton.style.position = 'absolute';
+backButton.style.top = '10px';
+backButton.style.left = '10px';
+backButton.style.padding = '5px 5px';
+backButton.style.zIndex = '1001';
+backButton.style.cursor = 'pointer';
+backButton.style.fontSize = '20px';
+backButton.style.color = '#fff';
+backButton.style.backgroundColor = 'grey';
+backButton.style.border = 'none';
+backButton.style.borderRadius = '50%';
+backButton.style.margin = "15px 20px";
+backButton.style.opacity = "0.5";
+
+backButton.addEventListener('click', () => {
+    // Reset map view to default
+    map.setView([12.870219035448784, 80.21841715860253], 16);
+
+    // Clear any existing route
+    if (routeControl) {
+        map.removeControl(routeControl);
+        routeControl = null;
+    }
+
+    // Clear input fields
+    document.getElementById('search-box').value = '';
+    document.getElementById('source').value = '';
+    document.getElementById('destination').value = '';
+
+    // Hide suggestion boxes if visible
+    document.querySelectorAll('.autocomplete-suggestions').forEach((box) => {
+        box.innerHTML = '';
+        box.style.display = 'none';
+    });
+
+    // Optionally, clear the sliding panel
+    hideSlidingPanel();
+});
+
+document.body.appendChild(backButton);
+
+// Add the Google Maps route button event listener
+document.getElementById('google-maps-route-button').addEventListener('click', () => {
     const sourceName = document.getElementById('source').value.toLowerCase();
-    const source = allFeatures.find(f => f.name.toLowerCase() === sourceName);
-
-    if (source) {
-        map.setView([source.coordinates[1], source.coordinates[0]], 18);
-        showSlidingPanel(source.name, source.details, source.imageUrl);
-    }
-});
-
-document.getElementById('search-button-destination').addEventListener('click', () => {
     const destinationName = document.getElementById('destination').value.toLowerCase();
-    const destination = allFeatures.find(f => f.name.toLowerCase() === destinationName);
 
-    if (destination) {
-        map.setView([destination.coordinates[1], destination.coordinates[0]], 18);
-        showSlidingPanel(destination.name, destination.details, destination.imageUrl);
+    const source = allFeatures.find((f) => f.name.toLowerCase() === sourceName);
+    const destination = allFeatures.find(
+        (f) => f.name.toLowerCase() === destinationName
+    );
+
+    if (source && destination) {
+        // Get the coordinates from GeoJSON data
+        const sourceCoordinates = source.coordinates;
+        const destinationCoordinates = destination.coordinates;
+
+        // Create Google Maps URL for directions
+        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${sourceCoordinates[1]},${sourceCoordinates[0]}&destination=${destinationCoordinates[1]},${destinationCoordinates[0]}`;
+
+        // Open the Google Maps route in a new window
+        window.open(googleMapsUrl, '_blank');
+    } else {
+        alert('Invalid source or destination.');
     }
 });
+

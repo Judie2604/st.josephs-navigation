@@ -33,6 +33,8 @@
             padding: 15px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
             border: 1px solid #ddd;
+            padding-left: 25px;
+            padding-top: 25px;
         }
 
         /* Input styling */
@@ -46,21 +48,7 @@
             margin-top: 10px;
         }
 
-        /* Search button styling */
-        .map-overlay .small-search-button {
-            display: inline-block;
-            padding: 10px;
-            background-color: #007bff;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 14px;
-            width: 35px;
-            height: 40px;
-            position: relative;
-            margin-left: 5px;
-        }
+     
 
         /* Suggestions box styling */
         .autocomplete-suggestions {
@@ -70,7 +58,7 @@
             border-radius: 5px;
             max-height: 150px;
             overflow-y: auto;
-            z-index: 1100;
+            z-index: 1101; /* Increased z-index to be above route button */
             width: calc(100% - 20px);
             margin-top: -5px;
         }
@@ -153,6 +141,32 @@
             right: 10px;
             line-height: 1;
         }
+
+        #google-maps-route-button {
+            position: absolute;
+            top: 350px;
+            left: 20px;
+            z-index: 900; /* Keep this lower than the suggestions */
+            width: 340px;
+            background: #007bff;
+            border-radius: 10px;
+            padding: 15px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            border: 1px solid  #007bff;
+            color: #f4f4f4;
+        }
+        #google-maps-route-button:hover{
+            color: black;
+            background-color: rgb(10, 199, 246);
+            border:none;
+        }
+        .map-overlay button:hover{
+            color: black;
+            background-color: rgb(10, 199, 246);
+            border:none;
+            z-index:800;
+        }
+      
     </style>
 </head>
 <body>
@@ -161,7 +175,7 @@
     <!-- Overlay for search and routing inputs -->
     <div class="map-overlay">
         <h3>College Navigation</h3>
-        <div style="position: relative;">
+        <div   style="position: relative;">
             <input id="search-box" type="text" placeholder="Search for a place">
           
             <div id="search-box-suggestions" class="autocomplete-suggestions"></div>
@@ -178,6 +192,9 @@
         </div>
         <button id="draw-route-button">Draw Route</button>
     </div>
+
+    <button id="google-maps-route-button">View Route on Google Maps</button>
+
 
     <div id="sliding-panel">
         <div id="panel-content">
