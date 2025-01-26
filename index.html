@@ -9,7 +9,7 @@
 </head>
 <body>
     <div id="map"></div>
-
+    
     <!-- Overlay for search and routing inputs -->
     <div class="map-overlay">
         <h3>College Navigation</h3>
@@ -29,9 +29,10 @@
             <div id="destination-suggestions" class="autocomplete-suggestions"></div>
         </div>
         <button id="draw-route-button">Draw Route</button>
-    </div>
+        <button id="google-maps-route-button">View Route on Google Maps</button>
 
-    <button id="google-maps-route-button">View Route on Google Maps</button>
+        
+    </div>
 
 
     <div id="sliding-panel">
@@ -44,9 +45,34 @@
             <button id="close-panel" class="close-button">X</button>
         </div>
     </div>
+<!-- Google Maps Modal -->
+
+    <!-- Google Map Modal -->
+<div id="mapContainer" class="hidden">
+    <button id="closeMapBtn" class="exit-btn">X</button>
+    <iframe 
+        src="https://www.google.com/maps/embed?pb=!1m20!1m8!1m3!1d7365.793621122282!2d80.21681724402814!3d12.868874397469531!3m2!1i1024!2i768!4f13.1!4m9!3e6!4m3!3m2!1d12.8701782!2d80.2177296!4m3!3m2!1d12.868894599999999!2d80.2168109!5e1!3m2!1sen!2sin!4v1736314629948!5m2!1sen!2sin"  
+        width="1100" 
+        height="400" 
+        style="border:0;" 
+        allowfullscreen="" 
+        loading="lazy">
+    </iframe>
+</div>
+
+
 
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script src="https://unpkg.com/leaflet-routing-machine/dist/leaflet-routing-machine.js"></script>
-    <script src="script.js"></script>
+    <script src="firebase-config.js" type="module"></script>
+    <!-- <script>
+        // Protect the map page - Check if the user is authenticated
+        firebase.auth().onAuthStateChanged(user => {
+            if (!user) {
+                window.location.href = 'login.html'; // Redirect to login page if user is not logged in
+            }
+        });
+    </script> -->
+ <script src="script.js"></script>
 </body>
 </html>

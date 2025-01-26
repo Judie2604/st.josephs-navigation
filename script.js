@@ -50,10 +50,14 @@ fetch('./assets/college_map.geojson')
 
                     // Add hover effect
                     layer.on('mouseover', () => {
-                        layer.setStyle({ radius: 12, weight: 3, color: '#007bff' });
+                        if (layer.setStyle) {
+                            layer.setStyle({ radius: 12, weight: 3, color: '#007bff' });
+                        }
                     });
                     layer.on('mouseout', () => {
-                        layer.setStyle({ radius: 8, weight: 1, color: '#3388ff' });
+                        if (layer.setStyle) {
+                            layer.setStyle({ radius: 8, weight: 1, color: '#3388ff' });
+                        }
                     });
 
                     // Add click event for sliding panel and input field filling
@@ -63,13 +67,23 @@ fetch('./assets/college_map.geojson')
                             feature.properties.description,
                             feature.properties.imageUrl
                         );
-
+                    
                         // Automatically fill the active input field
                         if (activeInputField) {
                             document.getElementById(activeInputField).value = feature.properties.Name;
                             activeInputField = null;
                         }
+                    
+                        // Highlight the selected layer if it supports setStyle
+                        if (layer.setStyle) {
+                            layer.setStyle({ radius: 15, color: '#ff0000' });
+                    
+                            setTimeout(() => {
+                                layer.setStyle({ radius: 8, color: '#3388ff' });
+                            }, 3000);
+                        }
                     });
+                
                 }
             },
         }).addTo(map);
@@ -142,15 +156,19 @@ function initializeAutocomplete(inputId) {
                     inputField.value = match.name;
                     suggestionBox.innerHTML = '';
                     suggestionBox.style.display = 'none';
-
+                
                     map.setView([match.coordinates[1], match.coordinates[0]], 18);
                     match.layer.openTooltip();
-                    match.layer.setStyle({ radius: 15, color: '#ff0000' });
-
-                    setTimeout(() => {
-                        match.layer.setStyle({ radius: 8, color: '#3388ff' });
-                    }, 3000);
-
+                
+                    // Highlight the layer only if it supports setStyle
+                    if (match.layer.setStyle) {
+                        match.layer.setStyle({ radius: 15, color: '#ff0000' });
+                
+                        setTimeout(() => {
+                            match.layer.setStyle({ radius: 8, color: '#3388ff' });
+                        }, 3000);
+                    }
+                
                     if (inputId === 'search-box') {
                         showSlidingPanel(match.name, match.details, match.imageUrl);
                     }
@@ -165,14 +183,23 @@ function initializeAutocomplete(inputId) {
         }
     });
 
-    inputField.addEventListener('blur', () => {
-        setTimeout(() => (suggestionBox.style.display = 'none'), 200);
+    // Remove the blur event to avoid closing suggestion box prematurely
+    inputField.addEventListener('focus', () => {
+        suggestionBox.style.display = 'block';
+    });
+
+    // Optional: Make the suggestion box disappear when clicking outside
+    document.addEventListener('click', (event) => {
+        if (!inputField.contains(event.target) && !suggestionBox.contains(event.target)) {
+            suggestionBox.style.display = 'none';
+        }
     });
 }
 
 initializeAutocomplete('search-box');
 initializeAutocomplete('source');
 initializeAutocomplete('destination');
+
 
 // Routing functionality
 let routeControl = null;
@@ -246,7 +273,8 @@ backButton.addEventListener('click', () => {
 
 document.body.appendChild(backButton);
 
-// Add the Google Maps route button event listener
+
+// Google Maps route redirection
 document.getElementById('google-maps-route-button').addEventListener('click', () => {
     const sourceName = document.getElementById('source').value.toLowerCase();
     const destinationName = document.getElementById('destination').value.toLowerCase();
@@ -262,14 +290,24 @@ document.getElementById('google-maps-route-button').addEventListener('click', ()
         const destinationCoordinates = destination.coordinates;
 
         // Create Google Maps URL for directions
-        const googleMapsUrl = `https://www.google.com/maps/dir/?api=1&origin=${sourceCoordinates[1]},${sourceCoordinates[0]}&destination=${destinationCoordinates[1]},${destinationCoordinates[0]}`;
+        const googleMapsUrl =`https://www.google.com/maps/dir/?api=1&origin=${sourceCoordinates[1]},${sourceCoordinates[0]}&destination=${destinationCoordinates[1]},${destinationCoordinates[0]}`;
+        console.log(googleMapsUrl);
 
         // Open the Google Maps route in a new window
-        window.open(googleMapsUrl, '_blank');
+      //  window.open(googleMapsUrl, '_blank');
     } else {
         alert('Invalid source or destination.');
     }
 });
+document.getElementById('google-maps-route-button').addEventListener('click', () => {
+    const mapContainer = document.getElementById('mapContainer');
+    mapContainer.classList.remove('hidden');
+    document.body.classList.add('modal-open');
+});
 
-
+document.getElementById('closeMapBtn').addEventListener('click', () => {
+    const mapContainer = document.getElementById('mapContainer');
+    mapContainer.classList.add('hidden');
+    document.body.classList.remove('modal-open');
+});
 
