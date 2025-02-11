@@ -203,7 +203,7 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             overlay.classList.add("visible");
             toggleBtn.innerHTML = "&#60;"; // Change to '<'
-            toggleBtn.style.marginLeft = "350px";  // When visible
+            toggleBtn.style.marginLeft = "340px";  // When visible
         }
     });
 });
