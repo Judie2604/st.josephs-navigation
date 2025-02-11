@@ -144,9 +144,9 @@ height:350px;
 #google-maps-route-button {
     position: absolute;
     top: 310px;
-    left: 25px;
+    left: 20px;
     z-index: 900; /* Keep this lower than the suggestions */
-    width: 340px;
+    width: 330px;
     color: white;
     background-color: #007bff;
     border: none;
@@ -290,7 +290,7 @@ body.modal-open {
         position: fixed;
         left: -350px; /* Move it out of view */
         top: 50px;
-        width: 300px;
+        width: 290px;
         height: 350px;
         max-height: 80vh;
         transition: left 0.3s ease-in-out;
