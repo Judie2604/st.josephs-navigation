@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link rel="stylesheet" href="login&signup.css">
+</head>
+<body>
+    <div class="auth-container">
+        <h2>Login</h2>
+        <form id="login-form">
+            <label for="email">Email:</label>
+            <input type="email" id="email" placeholder="Enter your email" required>
+            <label for="password">Password:</label>
+            <input type="password" id="password" placeholder="Enter your password" required>
+            <button type="submit" id="submit-btn">Login</button>
+            <!-- <p>Don't have an account? <a href="signup.html">Sign Up</a></p> -->
+        </form>
+    </div>
+
+    <script src="firebase-config.js" type="module"></script> <!-- Firebase config -->
+    <script type="module">
+        import { auth } from "./firebase-config.js";
+        import { signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/9.17.2/firebase-auth.js";
+    
+        const loginForm = document.getElementById('login-form');
+    
+        loginForm.addEventListener('submit', async (event) => {
+            event.preventDefault();
+    
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+    
+            try {
+                // Log in user
+                const userCredential = await signInWithEmailAndPassword(auth, email, password);
+                alert("logged in successfully")
+                window.location.href = "index.html";
+            } catch (error) {
+                // console.error("Error logging in:", error);
+                // alert(error.message);
+                alert("Access denied");
+            }
+        });
+    </script>
+    
+</body>
+</html>
