@@ -203,7 +203,9 @@ document.addEventListener("DOMContentLoaded", function () {
         } else {
             overlay.classList.add("visible");
             toggleBtn.innerHTML = "&#60;"; // Change to '<'
-            toggleBtn.style.marginLeft = "340px";  // When visible
+            toggleBtn.style.marginLeft = "321px"; // When visible
+            toggleBtn.style.backgroundColor = "rgba(190, 185, 185, 0.468)"
+            toggleBtn.style.borderRadius = "5px"
         }
     });
 });
