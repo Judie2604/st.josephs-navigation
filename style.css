@@ -15,8 +15,8 @@ body {
 /* Overlay container for controls */
 .map-overlay {
 position: absolute;
-top: 20px;
-left: 20px;
+top: 45px;
+left: 50px;
 z-index: 1000;
 width: 300px;
 background: rgba(255, 255, 255, 0.95);
@@ -104,11 +104,15 @@ height:350px;
 #close-panel {
     margin-top: 20px;
     padding: 10px 10px;
-    background: #65656685;
-    color: #fff;
+    height:40px;
+    width:40px;
+    border-radius: 20px;
+    background: #f4f1f1b1;
+    color: #0e0e0e;
     border: none;
-    border-radius: 50%;
     cursor: pointer;
+    font-size: 25px;
+    font-weight: lighter;
 }
 
 .des-container {
@@ -272,4 +276,62 @@ height:350px;
 
 body.modal-open {
     overflow: hidden; /* Prevent scrolling when modal is open */
+}
+/* Mobile Responsive Styles */
+@media (max-width: 768px) {
+    /* Ensure the map takes full screen */
+    #map {
+        height: 100vh;
+        width: 100%;
+    }
+
+    /* Hide overlay off-screen by default */
+    .map-overlay {
+        position: fixed;
+        left: -350px; /* Move it out of view */
+        top: 50px;
+        width: 300px;
+        height: 350px;
+        max-height: 80vh;
+        transition: left 0.3s ease-in-out;
+        z-index: 1100;
+    }
+
+    /* When overlay is visible */
+    .map-overlay.visible {
+        left: 10px; /* Slide in */
+    }
+
+    /* Toggle Button */
+    #toggle-overlay-btn {
+        position: fixed;
+        top: 220px;
+        z-index: 1200;
+        background: #3a3d419d;
+        color: rgb(15, 14, 14);
+        border: none;
+        border-radius:0px 5px  5px 0px;
+        padding: 15px 10px;
+        cursor: pointer;
+        font-size: 18px;
+        transition: all 0.3s ease-in-out;
+    }
+
+    /* Change button style when overlay is visible */
+    .overlay-open #toggle-overlay-btn {
+        left: 320px; /* Move button with overlay */
+        
+    }
+    #sliding-panel {
+        position: fixed;
+        right: -400px; /* Initially hidden */
+        top: 0;
+        width: 350px;
+        height: 100%;
+        background: #fff;
+        box-shadow: -2px 0 5px rgba(0, 0, 0, 0.3);
+        transition: right 0.3s ease; /* Smooth sliding effect */
+        overflow-y: auto;
+        z-index: 1300;
+    }
 }

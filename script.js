@@ -4,25 +4,27 @@ L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: 'Map data © OpenStreetMap contributors',
 }).addTo(map);
 
-// GeoJSON data storage and sliding panel references
-let allFeatures = [];
+// DOM Elements
 const slidingPanel = document.getElementById('sliding-panel');
 const locationTitle = document.getElementById('location-title');
 const locationDetails = document.getElementById('location-details');
 const closePanelButton = document.getElementById('close-panel');
 const locationImage = document.getElementById('location-image');
+const sourceInput = document.getElementById('source');
+const destinationInput = document.getElementById('destination');
+const searchBox = document.getElementById('search-box');
+const drawRouteButton = document.getElementById('draw-route-button');
+const googleMapsRouteButton = document.getElementById('google-maps-route-button');
 
-// Track the active input field (source or destination)
+// Variables
+let allFeatures = [];
 let activeInputField = null;
+let routeControl = null;
 
-// Add focus event listeners to track active input field
-document.getElementById('source').addEventListener('focus', () => {
-    activeInputField = 'source';
+// Track active input field (source or destination)
+[sourceInput, destinationInput].forEach((input) => {
+    input.addEventListener('focus', () => (activeInputField = input.id));
 });
-document.getElementById('destination').addEventListener('focus', () => {
-    activeInputField = 'destination';
-});
-
 document.addEventListener('click', (event) => {
     if (!event.target.closest('#source') && !event.target.closest('#destination')) {
         activeInputField = null;
@@ -35,279 +37,173 @@ fetch('./assets/college_map.geojson')
     .then((data) => {
         const geoJsonLayer = L.geoJSON(data, {
             onEachFeature: (feature, layer) => {
-                if (feature.properties && feature.properties.Name) {
-                    // Add tooltip for quick identification
-                    layer.bindTooltip(feature.properties.Name);
+                if (!feature.properties?.Name) return;
 
-                    // Store feature data for search and routing
-                    allFeatures.push({
-                        name: feature.properties.Name,
-                        details: feature.properties.description || 'No details available',
-                        coordinates: feature.geometry.coordinates,
-                        layer,
-                        imageUrl: feature.properties.imageUrl || '',
-                    });
+                // Store feature data for search and routing
+                const featureData = {
+                    name: feature.properties.Name,
+                    details: feature.properties.description || 'No details available',
+                    coordinates: feature.geometry.coordinates,
+                    layer,
+                    imageUrl: feature.properties.imageUrl || '',
+                };
+                allFeatures.push(featureData);
 
-                    // Add hover effect
-                    layer.on('mouseover', () => {
-                        if (layer.setStyle) {
-                            layer.setStyle({ radius: 12, weight: 3, color: '#007bff' });
-                        }
-                    });
-                    layer.on('mouseout', () => {
-                        if (layer.setStyle) {
-                            layer.setStyle({ radius: 8, weight: 1, color: '#3388ff' });
-                        }
-                    });
+                // Add tooltip for quick identification
+                layer.bindTooltip(feature.properties.Name);
 
-                    // Add click event for sliding panel and input field filling
-                    layer.on('click', () => {
-                        showSlidingPanel(
-                            feature.properties.Name,
-                            feature.properties.description,
-                            feature.properties.imageUrl
-                        );
-                    
-                        // Automatically fill the active input field
-                        if (activeInputField) {
-                            document.getElementById(activeInputField).value = feature.properties.Name;
-                            activeInputField = null;
-                        }
-                    
-                        // Highlight the selected layer if it supports setStyle
-                        if (layer.setStyle) {
-                            layer.setStyle({ radius: 15, color: '#ff0000' });
-                    
-                            setTimeout(() => {
-                                layer.setStyle({ radius: 8, color: '#3388ff' });
-                            }, 3000);
-                        }
-                    });
-                
-                }
+                // Hover effect
+                layer.on('mouseover', () => highlightLayer(layer, true));
+                layer.on('mouseout', () => highlightLayer(layer, false));
+
+                // Click event to show panel and autofill input
+                layer.on('click', () => {
+                    showSlidingPanel(featureData);
+                    if (activeInputField) {
+                        document.getElementById(activeInputField).value = feature.properties.Name;
+                        activeInputField = null;
+                    }
+                    highlightLayer(layer, true, 3000); // Highlight selected for 3 seconds
+                });
             },
         }).addTo(map);
 
-        // Fit the map to the GeoJSON bounds
+        // Fit map to GeoJSON bounds
         map.fitBounds(geoJsonLayer.getBounds());
     })
     .catch((error) => console.error('Error loading GeoJSON:', error));
 
-// Function to show the sliding panel
-function showSlidingPanel(name, details, imageUrl) {
+// Highlight layer function
+function highlightLayer(layer, highlight, timeout = 0) {
+    if (!layer.setStyle) return;
+    layer.setStyle({ radius: highlight ? 15 : 8, weight: highlight ? 3 : 1, color: highlight ? '#ff0000' : '#3388ff' });
+
+    if (timeout) {
+        setTimeout(() => layer.setStyle({ radius: 8, color: '#3388ff' }), timeout);
+    }
+}
+
+// Show sliding panel
+function showSlidingPanel({ name, details, imageUrl }) {
     locationTitle.textContent = name;
-
-    // Check if imageUrl exists and is valid
-    if (imageUrl) {
-        locationImage.src = imageUrl;
-        locationImage.alt = `${name} Image`;
-        locationImage.style.display = 'block';
-
-        // Add an error handler to set a default image if the URL fails
-        locationImage.onerror = () => {
-            locationImage.src = './assets/default-image.jpg'; // Path to your default image
-            locationImage.alt = 'Default Image';
-        };
-    } else {
-        // Hide the image if no URL is provided
-        locationImage.style.display = 'none';
-    }
-
-    // Update location details
-    if (details) {
-        locationDetails.innerHTML = details.includes('\n')
-            ? details.replace(/\n/g, '<br>')
-            : details;
-    } else {
-        locationDetails.textContent = 'No details available.';
-    }
-
+    locationImage.style.display = imageUrl ? 'block' : 'none';
+    locationImage.src = imageUrl || './assets/default-image.jpg';
+    locationImage.alt = `${name} Image`;
+    locationImage.onerror = () => (locationImage.src = './assets/default-image.jpg');
+    locationDetails.innerHTML = details.replace(/\n/g, '<br>') || 'No details available.';
     slidingPanel.classList.add('visible');
 }
 
-// Function to hide the sliding panel
-function hideSlidingPanel() {
-    slidingPanel.classList.remove('visible');
-}
+// Hide sliding panel
+closePanelButton.addEventListener('click', () => slidingPanel.classList.remove('visible'));
 
-// Close button functionality
-closePanelButton.addEventListener('click', hideSlidingPanel);
-
-// Add search functionality with highlight effect
-function initializeAutocomplete(inputId) {
-    const inputField = document.getElementById(inputId);
+// Autocomplete search functionality
+function initializeAutocomplete(input) {
     const suggestionBox = document.createElement('div');
     suggestionBox.className = 'autocomplete-suggestions';
-    inputField.parentNode.appendChild(suggestionBox);
+    input.parentNode.appendChild(suggestionBox);
 
-    inputField.addEventListener('input', () => {
-        const query = inputField.value.toLowerCase();
+    input.addEventListener('input', () => {
+        const query = input.value.toLowerCase();
         suggestionBox.innerHTML = '';
 
-        if (query) {
-            const matches = allFeatures.filter((f) =>
-                f.name.toLowerCase().includes(query)
-            );
-            matches.forEach((match) => {
-                const suggestion = document.createElement('div');
-                suggestion.textContent = match.name;
+        if (!query) return (suggestionBox.style.display = 'none');
 
-                suggestion.addEventListener('click', () => {
-                    inputField.value = match.name;
-                    suggestionBox.innerHTML = '';
-                    suggestionBox.style.display = 'none';
-                
-                    map.setView([match.coordinates[1], match.coordinates[0]], 18);
-                    match.layer.openTooltip();
-                
-                    // Highlight the layer only if it supports setStyle
-                    if (match.layer.setStyle) {
-                        match.layer.setStyle({ radius: 15, color: '#ff0000' });
-                
-                        setTimeout(() => {
-                            match.layer.setStyle({ radius: 8, color: '#3388ff' });
-                        }, 3000);
-                    }
-                
-                    if (inputId === 'search-box') {
-                        showSlidingPanel(match.name, match.details, match.imageUrl);
-                    }
-                });
-
-                suggestionBox.appendChild(suggestion);
+        const matches = allFeatures.filter((f) => f.name.toLowerCase().includes(query));
+        matches.forEach((match) => {
+            const suggestion = document.createElement('div');
+            suggestion.textContent = match.name;
+            suggestion.addEventListener('click', () => {
+                input.value = match.name;
+                suggestionBox.style.display = 'none';
+                map.setView([match.coordinates[1], match.coordinates[0]], 18);
+                match.layer.openTooltip();
+                highlightLayer(match.layer, true, 3000);
+                if (input.id === 'search-box') showSlidingPanel(match);
             });
+            suggestionBox.appendChild(suggestion);
+        });
 
-            suggestionBox.style.display = matches.length > 0 ? 'block' : 'none';
-        } else {
-            suggestionBox.style.display = 'none';
-        }
+        suggestionBox.style.display = matches.length ? 'block' : 'none';
     });
 
-    // Remove the blur event to avoid closing suggestion box prematurely
-    inputField.addEventListener('focus', () => {
-        suggestionBox.style.display = 'block';
-    });
-
-    // Optional: Make the suggestion box disappear when clicking outside
     document.addEventListener('click', (event) => {
-        if (!inputField.contains(event.target) && !suggestionBox.contains(event.target)) {
+        if (!input.contains(event.target) && !suggestionBox.contains(event.target)) {
             suggestionBox.style.display = 'none';
         }
     });
 }
 
-initializeAutocomplete('search-box');
-initializeAutocomplete('source');
-initializeAutocomplete('destination');
+// Initialize autocomplete for input fields
+[searchBox, sourceInput, destinationInput].forEach(initializeAutocomplete);
 
+// Draw route
+drawRouteButton.addEventListener('click', () => {
+    const source = allFeatures.find((f) => f.name.toLowerCase() === sourceInput.value.toLowerCase());
+    const destination = allFeatures.find((f) => f.name.toLowerCase() === destinationInput.value.toLowerCase());
 
-// Routing functionality
-let routeControl = null;
-document.getElementById('draw-route-button').addEventListener('click', () => {
-    const sourceName = document.getElementById('source').value.toLowerCase();
-    const destinationName = document.getElementById('destination').value.toLowerCase();
+    if (!source || !destination) return alert('Invalid source or destination.');
 
-    const source = allFeatures.find((f) => f.name.toLowerCase() === sourceName);
-    const destination = allFeatures.find(
-        (f) => f.name.toLowerCase() === destinationName
-    );
+    if (routeControl) map.removeControl(routeControl);
 
-    if (source && destination) {
-        if (routeControl) map.removeControl(routeControl);
+    routeControl = L.Routing.control({
+        waypoints: [L.latLng(source.coordinates[1], source.coordinates[0]), L.latLng(destination.coordinates[1], destination.coordinates[0])],
+        routeWhileDragging: true,
+    }).addTo(map);
 
-        routeControl = L.Routing.control({
-            waypoints: [
-                L.latLng(source.coordinates[1], source.coordinates[0]),
-                L.latLng(destination.coordinates[1], destination.coordinates[0]),
-            ],
-            routeWhileDragging: true,
-        }).addTo(map);
-
-        hideSlidingPanel();
-    } else {
-        alert('Invalid source or destination.');
-    }
+    slidingPanel.classList.remove('visible');
 });
 
-// Add back button to the map overlay
+// Reset button to clear routes and inputs
 const backButton = document.createElement('button');
-backButton.textContent = '←';
-backButton.style.position = 'absolute';
-backButton.style.top = '10px';
-backButton.style.left = '10px';
-backButton.style.padding = '5px 5px';
-backButton.style.zIndex = '1001';
-backButton.style.cursor = 'pointer';
-backButton.style.fontSize = '20px';
-backButton.style.color = '#fff';
-backButton.style.backgroundColor = 'grey';
-backButton.style.border = 'none';
-backButton.style.borderRadius = '50%';
-backButton.style.margin = "15px 20px";
-backButton.style.opacity = "0.5";
+backButton.textContent = '⟳';
+Object.assign(backButton.style, {
+    position: 'absolute', top: '-5px', left: '30px', padding: '2px 5px', zIndex: '1201',
+    cursor: 'pointer', fontSize: '20px', color: 'black', backgroundColor: 'white',
+    border: ' 1px solid  grey', borderRadius: ' 5px', margin: '15px 20px', 
+});
 
 backButton.addEventListener('click', () => {
-    // Reset map view to default
     map.setView([12.870219035448784, 80.21841715860253], 16);
-
-    // Clear any existing route
-    if (routeControl) {
-        map.removeControl(routeControl);
-        routeControl = null;
-    }
-
-    // Clear input fields
-    document.getElementById('search-box').value = '';
-    document.getElementById('source').value = '';
-    document.getElementById('destination').value = '';
-
-    // Hide suggestion boxes if visible
-    document.querySelectorAll('.autocomplete-suggestions').forEach((box) => {
-        box.innerHTML = '';
-        box.style.display = 'none';
-    });
-
-    // Optionally, clear the sliding panel
-    hideSlidingPanel();
+    if (routeControl) map.removeControl(routeControl);
+    [searchBox, sourceInput, destinationInput].forEach((input) => (input.value = ''));
+    document.querySelectorAll('.autocomplete-suggestions').forEach((box) => (box.innerHTML = '', box.style.display = 'none'));
+    slidingPanel.classList.remove('visible');
 });
-
 document.body.appendChild(backButton);
 
+// Google Maps redirection
+googleMapsRouteButton.addEventListener('click', () => {
+    const source = allFeatures.find((f) => f.name.toLowerCase() === sourceInput.value.toLowerCase());
+    const destination = allFeatures.find((f) => f.name.toLowerCase() === destinationInput.value.toLowerCase());
 
-// Google Maps route redirection
-document.getElementById('google-maps-route-button').addEventListener('click', () => {
-    const sourceName = document.getElementById('source').value.toLowerCase();
-    const destinationName = document.getElementById('destination').value.toLowerCase();
+    if (!source || !destination) return alert('Invalid source or destination.');
 
-    const source = allFeatures.find((f) => f.name.toLowerCase() === sourceName);
-    const destination = allFeatures.find(
-        (f) => f.name.toLowerCase() === destinationName
-    );
-
-    if (source && destination) {
-        // Get the coordinates from GeoJSON data
-        const sourceCoordinates = source.coordinates;
-        const destinationCoordinates = destination.coordinates;
-
-        // Create Google Maps URL for directions
-        const googleMapsUrl =`https://www.google.com/maps/dir/?api=1&origin=${sourceCoordinates[1]},${sourceCoordinates[0]}&destination=${destinationCoordinates[1]},${destinationCoordinates[0]}`;
-        console.log(googleMapsUrl);
-
-        // Open the Google Maps route in a new window
-      //  window.open(googleMapsUrl, '_blank');
-    } else {
-        alert('Invalid source or destination.');
-    }
+    window.open(`https://www.google.com/maps/dir/?api=1&origin=${source.coordinates[1]},${source.coordinates[0]}&destination=${destination.coordinates[1]},${destination.coordinates[0]}`, '_blank');
 });
-document.getElementById('google-maps-route-button').addEventListener('click', () => {
-    const mapContainer = document.getElementById('mapContainer');
-    mapContainer.classList.remove('hidden');
-    document.body.classList.add('modal-open');
-});
+document.addEventListener("DOMContentLoaded", function () {
+    const overlay = document.querySelector(".map-overlay");
+    const toggleBtn = document.createElement("button");
+    
+    toggleBtn.id = "toggle-overlay-btn";
+    toggleBtn.innerHTML = "&#62;"; // '>' icon for sliding in
+    document.body.appendChild(toggleBtn);
 
-document.getElementById('closeMapBtn').addEventListener('click', () => {
-    const mapContainer = document.getElementById('mapContainer');
-    mapContainer.classList.add('hidden');
-    document.body.classList.remove('modal-open');
-});
+    // Set initial button position
+    toggleBtn.style.position = "absolute";
+    toggleBtn.style.top = "30%"; 
+    toggleBtn.style.marginLeft = "0px"; // Default when visible
 
+    // Toggle overlay visibility
+    toggleBtn.addEventListener("click", function () {
+        if (overlay.classList.contains("visible")) {
+            overlay.classList.remove("visible");
+            toggleBtn.innerHTML = "&#62;"; // Change to '>'
+            toggleBtn.style.marginLeft = "0px";  // When hidden
+        } else {
+            overlay.classList.add("visible");
+            toggleBtn.innerHTML = "&#60;"; // Change to '<'
+            toggleBtn.style.marginLeft = "350px";  // When visible
+        }
+    });
+});
